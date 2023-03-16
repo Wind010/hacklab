@@ -1,0 +1,36 @@
+version: '3.8'
+
+networks:
+  frontend:
+    ipam:
+      config:
+        - subnet: 172.24.0.0/24
+        
+services:
+    target:
+        build: 
+            dockerfile: ./Dockerfile
+            context: ./target 
+        container_name: target
+        volumes:
+            - .:/shared
+        networks:
+            frontend:
+                ipv4_address: 172.24.0.2
+        ports:
+            - "5010:5010"
+        tty: true # Start and keep container runing
+        
+    attacker: 
+        build: 
+            dockerfile: ./Dockerfile
+            context: ./attacker
+        container_name: attacker
+        volumes:
+            - .:/shared
+        networks:
+            frontend:
+                ipv4_address: 172.24.0.3
+        ports:
+            - "5011:5011"
+        tty: true
